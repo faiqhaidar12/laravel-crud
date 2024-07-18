@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Books;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class BookController extends Controller
 {
@@ -13,7 +14,7 @@ class BookController extends Controller
     public function index()
     {
         $books = Books::get();
-        return view('index', compact('books'));
+        return view('pages.admin.dashboard.index', compact('books'));
     }
 
     /**
@@ -21,7 +22,7 @@ class BookController extends Controller
      */
     public function create()
     {
-        return view('add');
+        return view('pages.admin.dashboard.create');
     }
 
     /**
@@ -32,8 +33,18 @@ class BookController extends Controller
         $validated = $request->validate([
             'judul_buku' => 'required|string',
             'nama' => 'required|string',
-            'deskripsi' => 'required|string'
+            'deskripsi' => 'required|string',
+            'image' => 'required|mimes:png,jpg,jpeg|max:2048',
         ]);
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $image_extension = $image->extension();
+            $image_name = date('ymdhis') . "." . $image_extension;
+            $image->move(public_path('images'), $image_name);
+
+            $validated['image'] = $image_name;
+        }
 
         Books::create($validated);
         return redirect()->route('books.index');
@@ -44,7 +55,8 @@ class BookController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $book = Books::findOrFail($id);
+        return view('pages.admin.dashboard.show', compact('book'));
     }
 
     /**
@@ -54,7 +66,7 @@ class BookController extends Controller
     {
         $book = Books::where('id', $id)->first();
 
-        return view('edit', compact('book'));
+        return view('pages.admin.dashboard.edit', compact('book'));
     }
 
     /**
@@ -62,18 +74,28 @@ class BookController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'nama',
-            'judul_buku',
-            'deskripsi'
+        $validated = $request->validate([
+            'judul_buku' => 'required|string',
+            'nama' => 'required|string',
+            'deskripsi' => 'required|string',
+            'image' => 'mimes:png,jpg,jpeg|max:2048',
         ]);
-        // return $validated;
-        $data = [
-            'nama' => $request->input('nama'),
-            'judul_buku' => $request->input('judul_buku'),
-            'deskripsi' => $request->input('deskripsi'),
-        ];
-        Books::where('id', $id)->update($data);
+
+        $book = Books::findOrFail($id);
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $image_extension = $image->extension();
+            $image_name = date('ymdhis') . "." . $image_extension;
+            $image->move(public_path('images'), $image_name);
+
+            File::delete(public_path('images') . '/' . $book->image);
+            $validated['image'] = $image_name;
+        } else {
+            $validated['image'] = $book->image;
+        }
+
+        $book->update($validated);
         return redirect()->route('books.index');
     }
 
@@ -82,7 +104,9 @@ class BookController extends Controller
      */
     public function destroy(string $id)
     {
-        Books::where('id', $id)->delete();
+        $book = Books::findOrFail($id);
+        File::delete(public_path('images') . '/' . $book->image);
+        $book->delete();
         return redirect()->route('books.index');
     }
 }
