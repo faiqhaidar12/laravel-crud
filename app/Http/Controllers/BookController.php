@@ -11,9 +11,13 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Books::get();
+        $keyword = $request->input('keyword');
+        $books = Books::where(function ($query) use ($keyword) {
+            $query->where('nama', 'LIKE', '%' . $keyword . '%')
+                ->orWhere('judul_buku', 'LIKE', '%' . $keyword);
+        })->latest()->paginate(5);
         return view('pages.admin.dashboard.index', compact('books'));
     }
 

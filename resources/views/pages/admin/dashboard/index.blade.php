@@ -7,7 +7,22 @@
                 <div class="card-header">
                     <h3 class="card-title">Data Buku</h3>
                     <div class="d-flex justify-content-end">
-                        <a href="{{ route('books.create') }}" class="btn btn-sm btn-success">Tambah Buku</a>
+                        <div class="mr-3">
+                            <form action="{{ route('books.index') }}" method="GET">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="keyword" class="form-control float-right"
+                                        placeholder="Search" value="{{ request('keyword') }}">
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-default">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div>
+                            <a href="{{ route('books.create') }}" class="btn btn-sm btn-success">Tambah Buku</a>
+                        </div>
                     </div>
                 </div>
                 <!-- /.card-header -->
@@ -59,11 +74,7 @@
                 <!-- /.card-body -->
                 <div class="card-footer clearfix">
                     <ul class="pagination pagination-sm m-0 float-right">
-                        <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                        {{ $books->links() }}
                     </ul>
                 </div>
             </div>
